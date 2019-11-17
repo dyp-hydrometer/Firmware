@@ -53,8 +53,7 @@ BLECharacteristic batc = BLECharacteristic(UUID16_BATC);
 BLEDis bledis;                // DIS (Device Information Service) helper class instance
 BLEBas blebas;                // BAS (Battery Service) helper class instance
 
-uint16_t grmValue = 1;
-uint32_t grmInterval = 4000;
+uint32_t grmInterval = 5;
 uint8_t  notifyEnable = 0;
 uint8_t  toggleRedLED = 0;
 uint8_t  cmdData[5];
@@ -93,9 +92,51 @@ uint8_t cal_system, cal_gyroo, cal_accel, cal_mg = 0;
 //Creating an object
 Adafruit_BNO055 myIMU = Adafruit_BNO055();
 
-int vbat_raw;
-uint8_t vbat_per;
-float vbat_mv;
+int       vbat_raw;
+uint8_t   vbat_per;
+float     vbat_mv;
+uint32_t  countDown;;                            // countdown interval to get data      
+int8_t    tempFahrenheit;
+
+void init_timer2(void)
+{
+    NRF_TIMER2->TASKS_STOP = 1;
+    // Create an Event-Task shortcut to clear TIMER0 on COMPARE[0] event
+    NRF_TIMER2->MODE        = TIMER_MODE_MODE_Timer;
+    NRF_TIMER2->BITMODE     = (TIMER_BITMODE_BITMODE_24Bit << TIMER_BITMODE_BITMODE_Pos);
+    NRF_TIMER2->PRESCALER   = 8;                // 16MHz / (2 power prescale)  1us resolution
+
+    NRF_TIMER2->TASKS_CLEAR = 1;                // clear the task first to be usable for later
+    NRF_TIMER2->CC[0] = 62500;                  // 1 second timeout
+    
+    NRF_TIMER2->INTENSET    = TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos;
+    
+    NRF_TIMER2->SHORTS      = (TIMER_SHORTS_COMPARE1_CLEAR_Enabled << TIMER_SHORTS_COMPARE1_CLEAR_Pos);
+    NVIC_EnableIRQ(TIMER2_IRQn);
+    NRF_TIMER2->TASKS_START = 1;
+    countDown = grmInterval;                    // set default interval to countdown
+}
+
+extern "C"
+{
+  void TIMER2_IRQHandler(void) 
+  {
+    if (NRF_TIMER2->EVENTS_COMPARE[0] != 0)
+    {
+      //Serial.println("Timer interrupt called");
+      if(countDown == 0)
+      {
+          Serial.print("timeout in ");
+          Serial.println(grmInterval);
+          countDown = grmInterval;
+          sendData();
+      }
+      NRF_TIMER2->EVENTS_COMPARE[0] = 0;
+      NRF_TIMER2->TASKS_CLEAR = 1;
+      countDown--;
+    } 
+  }
+}
 
 void setup()
 {
@@ -146,8 +187,10 @@ void setup()
 
   analogReference(AR_INTERNAL_3_0);
   analogReadResolution(12);  // Can be 8, 10, 12 or 14
-  
+
   delay(1000);
+  //init_timer2();               // Setup timer0
+  //Serial.println("Setup timer");
 }
 
 void startAdv(void)
@@ -269,7 +312,7 @@ void write_callback(uint16_t conn_hdl, BLECharacteristic* chr, uint8_t* data, ui
           grmInterval |= ((uint32_t)data[2] << 16) & 0x00FF0000;
           grmInterval |= ((uint32_t)data[3] << 8) & 0x0000FF00;
           grmInterval |= (uint32_t)data[4];
-          grmInterval = grmInterval * 1000;       
+          grmInterval = grmInterval;       
           Serial.print(grmInterval, DEC);  
           break;
       case 0x02:
@@ -353,20 +396,15 @@ void readBatteryLevel()
   Serial.println("%)");
 }
 
-void loop()
-{ 
-  uint8_t grmdata[14];
-  uint8_t grmdata1[4];
-  uint8_t grmdata2[4];
-  uint8_t grmdata3[4];
-
+void getXYZ()
+{
   //Compact datatype = int8_t
-  int8_t temp_in_celsius = myIMU.getTemp();
+  int8_t tempCelsius = myIMU.getTemp();
     
   //Using the external temperature sensor that is on the board and not the one on the chip.
   myIMU.setExtCrystalUse(true);
   
-  int8_t temp_in_fahrenheit = (temp_in_celsius*1.8) + 32;
+  tempFahrenheit = (tempCelsius*1.8) + 32;
 
   //Ranging from level 0-3 = CALIBRATION
   myIMU.getCalibration(&cal_system,&cal_gyroo,&cal_accel, &cal_mg);
@@ -406,10 +444,10 @@ void loop()
 
   //Print Statements
   Serial.print("Temperature in Celsius:    ");
-  Serial.println(temp_in_celsius);
+  Serial.println(tempCelsius);
 
   Serial.print("Temperature in Fahrenheit: ");
-  Serial.println(temp_in_fahrenheit);
+  Serial.println(tempFahrenheit);
   
   Serial.print("Accelerometer  X, ");
   Serial.print("Y, ");
@@ -453,17 +491,23 @@ void loop()
   Serial.println(phiFnew);
   Serial.print("Z angle: ");
   Serial.println(psi);
-
+  Serial.println();
+  Serial.println();
+  
   //Setting back the value to new value(0) while going back to loop
   thetaFold = thetaFnew;
   phiFold = phiFnew;
+}
 
-  Serial.println();
-  Serial.println();
+void sendData()
+{
+  uint8_t grmdata[14];                            
+  uint8_t grmdata1[4];
+  uint8_t grmdata2[4];
+  uint8_t grmdata3[4];
 
-  readBatteryLevel();
- 
-  if ( Bluefruit.connected() ) {
+  if ( Bluefruit.connected() ) 
+  {
     if(toggleRedLED)
         digitalToggle(LED_RED);
     // Note: We use .notify instead of .write!
@@ -471,25 +515,42 @@ void loop()
     // The characteristic's value is still updated although notification is not sent
     if(notifyEnable == 1)
     {
-        float2Bytes(grmdata1, thetaFnew);
-        float2Bytes(grmdata2, phiFnew);
-        float2Bytes(grmdata3, psi);
-        
-        memcpy(grmdata, grmdata1, 4);
-        memcpy(&grmdata[4], grmdata2, 4);
-        memcpy(&grmdata[8], grmdata3, 4);
-        grmdata[12] = temp_in_fahrenheit;
-        
-        if ( grmc.notify(grmdata, sizeof(grmdata)) ){
-            Serial.print("Sent angle data");
-            print_bytes(grmdata, 13);
-        }else{
-            Serial.println("ERROR: Notify not set in the CCCD or not connected!");
-        }
+      float2Bytes(grmdata1, thetaFnew);
+      float2Bytes(grmdata2, phiFnew);
+      float2Bytes(grmdata3, psi);
+      
+      memcpy(grmdata, grmdata1, 4);
+      memcpy(&grmdata[4], grmdata2, 4);
+      memcpy(&grmdata[8], grmdata3, 4);
+      grmdata[12] = tempFahrenheit;
+      
+      if ( grmc.notify(grmdata, sizeof(grmdata)) ){
+          Serial.print("Sent angle data");
+          print_bytes(grmdata, 13);
+      }else{
+          Serial.println("ERROR: Notify not set in the CCCD or not connected!");
+      }
     } 
-    batc.write8(vbat_per); 
   }
+  
+}
 
+void loop()
+{
+  readBatteryLevel();
+
+  if(countDown == 0)
+  {
+    Serial.print("Timeout: ");
+    Serial.println(grmInterval);
+    countDown = grmInterval;
+    getXYZ();
+    sendData();
+  }
+  else
+    countDown--;
+  
+  batc.write8(vbat_per);
   // Only send update once per second
-  delay(grmInterval);
+  delay(1000);
 }
