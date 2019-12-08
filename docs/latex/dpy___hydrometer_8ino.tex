@@ -1,0 +1,535 @@
+\hypertarget{dpy___hydrometer_8ino}{}\doxysection{C\+:/\+Users/minhc/\+Documents/\+C\+S\+E-\/4316/\+Source\+Code/dpy\+\_\+\+Hydrometer/dpy\+\_\+\+Hydrometer.ino File Reference}
+\label{dpy___hydrometer_8ino}\index{C:/Users/minhc/Documents/CSE-\/4316/SourceCode/dpy\_Hydrometer/dpy\_Hydrometer.ino@{C:/Users/minhc/Documents/CSE-\/4316/SourceCode/dpy\_Hydrometer/dpy\_Hydrometer.ino}}
+
+
+This is source file for D\+PY Hydrometer. This firmware file will setup the n\+R\+F52 based Bluefruit LE and Adafruit Adafruit\+\_\+\+B\+N\+O055.  
+
+
+{\ttfamily \#include $<$bluefruit.\+h$>$}\newline
+{\ttfamily \#include $<$Wire.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+Sensor.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+B\+N\+O055.\+h$>$}\newline
+{\ttfamily \#include $<$utility/imumaths.\+h$>$}\newline
+{\ttfamily \#include $<$math.\+h$>$}\newline
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a4c58310596eabbb970a4e2714e6e7077}{U\+U\+I\+D16\+\_\+\+H\+Y\+DS}}~0x2468
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aaac26005eeed930c3bea460993dae44f}\label{dpy___hydrometer_8ino_aaac26005eeed930c3bea460993dae44f}} 
+\#define {\bfseries U\+U\+I\+D16\+\_\+\+G\+R\+MC}~0x0001
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a101c08b06fa4c93c3c007bc0c6c307c0}\label{dpy___hydrometer_8ino_a101c08b06fa4c93c3c007bc0c6c307c0}} 
+\#define {\bfseries U\+U\+I\+D16\+\_\+\+C\+M\+DC}~0x0002
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a18499e378c1e259cf6da0bf8ca0bcad8}\label{dpy___hydrometer_8ino_a18499e378c1e259cf6da0bf8ca0bcad8}} 
+\#define {\bfseries U\+U\+I\+D16\+\_\+\+B\+A\+TC}~0x0003
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a1f9c3045df8f60bc263718d85d25e9b2}\label{dpy___hydrometer_8ino_a1f9c3045df8f60bc263718d85d25e9b2}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a1f9c3045df8f60bc263718d85d25e9b2}{C\+M\+D\+\_\+\+S\+E\+T\+\_\+\+I\+N\+T\+E\+R\+V\+AL}}~0x01
+\begin{DoxyCompactList}\small\item\em Command I\+Ds for user app. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a7e6ea987b017467c8e3e4b8ca12cc9a2}\label{dpy___hydrometer_8ino_a7e6ea987b017467c8e3e4b8ca12cc9a2}} 
+\#define {\bfseries C\+M\+D\+\_\+\+G\+E\+T\+\_\+\+I\+N\+T\+E\+R\+V\+AL}~0x02
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a83040594ed47ff85392e95afa9583904}\label{dpy___hydrometer_8ino_a83040594ed47ff85392e95afa9583904}} 
+\#define {\bfseries C\+M\+D\+\_\+\+G\+E\+T\+\_\+\+C\+A\+L\+I\+B\+R\+A\+T\+I\+O\+N\+\_\+\+S\+T\+A\+T\+US}~0x03
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a12bd62363eeb212c7e52831e5324ce2e}\label{dpy___hydrometer_8ino_a12bd62363eeb212c7e52831e5324ce2e}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a12bd62363eeb212c7e52831e5324ce2e}{B\+N\+O055\+\_\+\+S\+A\+M\+P\+L\+E\+R\+A\+T\+E\+\_\+\+D\+E\+L\+A\+Y\+\_\+\+MS}}~(100)
+\begin{DoxyCompactList}\small\item\em Sampling every 100 ms. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a7ddd8f8ba527400d806a6b41eaa95be6}\label{dpy___hydrometer_8ino_a7ddd8f8ba527400d806a6b41eaa95be6}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a7ddd8f8ba527400d806a6b41eaa95be6}{V\+B\+A\+T\+\_\+\+P\+IN}}~(A7)
+\begin{DoxyCompactList}\small\item\em Adafruit batter pin. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a32579cd323a8ba465196a25d639d76b0}\label{dpy___hydrometer_8ino_a32579cd323a8ba465196a25d639d76b0}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a32579cd323a8ba465196a25d639d76b0}{V\+B\+A\+T\+\_\+\+M\+V\+\_\+\+P\+E\+R\+\_\+\+L\+SB}}~(0.\+73242188F)
+\begin{DoxyCompactList}\small\item\em 3.\+0V A\+DC range and 12-\/bit A\+DC resolution = 3000m\+V/4096 \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a2a5b55245198b5227a373ee381d26323}\label{dpy___hydrometer_8ino_a2a5b55245198b5227a373ee381d26323}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a2a5b55245198b5227a373ee381d26323}{V\+B\+A\+T\+\_\+\+D\+I\+V\+I\+D\+ER}}~(0.\+71275837F)
+\begin{DoxyCompactList}\small\item\em 2M + 0.\+806M voltage divider on V\+B\+AT = (2M / (0.\+806M + 2M)) \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a2df67a9ba10662cfca18bad82f435cb0}\label{dpy___hydrometer_8ino_a2df67a9ba10662cfca18bad82f435cb0}} 
+\#define \mbox{\hyperlink{dpy___hydrometer_8ino_a2df67a9ba10662cfca18bad82f435cb0}{V\+B\+A\+T\+\_\+\+D\+I\+V\+I\+D\+E\+R\+\_\+\+C\+O\+MP}}~(1.\+403F)
+\begin{DoxyCompactList}\small\item\em Compensation factor for the V\+B\+AT divider. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a4fc01d736fe50cf5b977f755b675f11d}{setup}} ()
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_aa62ff3a008a19b54b094aa1b64d89b5e}{start\+Adv}} (void)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_aaa440cb76248b5184c38d75f6c827bd1}{setup\+H\+Y\+DS}} (void)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a42328a2531f25c9a6be7653ef4a21c40}{connect\+\_\+callback}} (uint16\+\_\+t conn\+\_\+handle)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a75d8e8b9b10b0a121eb72c75fe4ab1be}{disconnect\+\_\+callback}} (uint16\+\_\+t conn\+\_\+handle, uint8\+\_\+t reason)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a2c9700a9e1785dc46cc0e4b53c6115f7}{cccd\+\_\+callback}} (uint16\+\_\+t conn\+\_\+hdl, B\+L\+E\+Characteristic $\ast$chr, uint16\+\_\+t cccd\+\_\+value)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a8df3a48c59f48a4950576d7960ddba8e}{write\+\_\+callback}} (uint16\+\_\+t conn\+\_\+hdl, B\+L\+E\+Characteristic $\ast$chr, uint8\+\_\+t $\ast$data, uint16\+\_\+t len)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a775f3ae8121fb2049e9d05b2dd72b5a2}{print\+\_\+bytes}} (byte $\ast$str, uint8\+\_\+t len)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a300ecbf25a51953b52fe095d35664daa}{float2\+Bytes}} (byte bytes\+\_\+temp\mbox{[}4\mbox{]}, float float\+\_\+variable)
+\item 
+uint8\+\_\+t \mbox{\hyperlink{dpy___hydrometer_8ino_ad4a7ebac4897fb3d7e369c917d632f08}{mv\+To\+Percent}} (float mvolts)
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a647ec4ab0d27b1b384f76298bb1205f5}{read\+Battery\+Level}} ()
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_afa0e2bfaf37a2c519ba528c769277d08}{get\+X\+YZ}} ()
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_a95b1b253ee46df6a93285803cf1f3370}{send\+Data}} ()
+\item 
+void \mbox{\hyperlink{dpy___hydrometer_8ino_afe461d27b9c48d5921c00d521181f12f}{loop}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a9d552e06a464eace63641a49b654bf6f}\label{dpy___hydrometer_8ino_a9d552e06a464eace63641a49b654bf6f}} 
+B\+L\+E\+Service \mbox{\hyperlink{dpy___hydrometer_8ino_a9d552e06a464eace63641a49b654bf6f}{hyds}} = B\+L\+E\+Service(\mbox{\hyperlink{dpy___hydrometer_8ino_a4c58310596eabbb970a4e2714e6e7077}{U\+U\+I\+D16\+\_\+\+H\+Y\+DS}})
+\begin{DoxyCompactList}\small\item\em Create the B\+LE service and characteristics. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a31955613e775bdeb046910662fdead4d}\label{dpy___hydrometer_8ino_a31955613e775bdeb046910662fdead4d}} 
+B\+L\+E\+Characteristic {\bfseries grmc} = B\+L\+E\+Characteristic(U\+U\+I\+D16\+\_\+\+G\+R\+MC)
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a6b5595b4e322d91752525a04ef2a7f05}\label{dpy___hydrometer_8ino_a6b5595b4e322d91752525a04ef2a7f05}} 
+B\+L\+E\+Characteristic {\bfseries cmdc} = B\+L\+E\+Characteristic(U\+U\+I\+D16\+\_\+\+C\+M\+DC)
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_afdf9190dccefa5fbcc0bee76ecddbb43}\label{dpy___hydrometer_8ino_afdf9190dccefa5fbcc0bee76ecddbb43}} 
+B\+L\+E\+Characteristic {\bfseries batc} = B\+L\+E\+Characteristic(U\+U\+I\+D16\+\_\+\+B\+A\+TC)
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ab3df856729b3af3070dfca595f9accd4}\label{dpy___hydrometer_8ino_ab3df856729b3af3070dfca595f9accd4}} 
+B\+L\+E\+Dis {\bfseries bledis}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af29527d634dcee290fa1ef384d2dadf9}\label{dpy___hydrometer_8ino_af29527d634dcee290fa1ef384d2dadf9}} 
+B\+L\+E\+Bas {\bfseries blebas}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a9679047c6a38d1e13f18dc4dbc2d3389}\label{dpy___hydrometer_8ino_a9679047c6a38d1e13f18dc4dbc2d3389}} 
+uint32\+\_\+t {\bfseries grm\+Interval} = 5
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ade995ab2b812c0de1a76d6ad7b5ab0c0}\label{dpy___hydrometer_8ino_ade995ab2b812c0de1a76d6ad7b5ab0c0}} 
+uint8\+\_\+t {\bfseries notify\+Enable} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_addce0e642c581c60f51b5bdc664f1297}\label{dpy___hydrometer_8ino_addce0e642c581c60f51b5bdc664f1297}} 
+uint8\+\_\+t {\bfseries toggle\+Red\+L\+ED} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aeb9ffe3deced12d13c7fee18b5733890}\label{dpy___hydrometer_8ino_aeb9ffe3deced12d13c7fee18b5733890}} 
+uint8\+\_\+t {\bfseries cmd\+Data} \mbox{[}5\mbox{]}
+\item 
+float \mbox{\hyperlink{dpy___hydrometer_8ino_a9ce2e19f4288e6517e0f0e2933bb1f85}{thetaM}}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aba30de0897ce239d95a052dbe9b25a7d}\label{dpy___hydrometer_8ino_aba30de0897ce239d95a052dbe9b25a7d}} 
+float {\bfseries phiM}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af4d3f4f8791012857a7b27a1f9e4e9cd}\label{dpy___hydrometer_8ino_af4d3f4f8791012857a7b27a1f9e4e9cd}} 
+float {\bfseries theta\+Fold} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a82152e7967f8035ccffaa2628e74d79a}\label{dpy___hydrometer_8ino_a82152e7967f8035ccffaa2628e74d79a}} 
+float {\bfseries theta\+Fnew}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af9f92d040cab8d5619780bc0db9c6057}\label{dpy___hydrometer_8ino_af9f92d040cab8d5619780bc0db9c6057}} 
+float {\bfseries phi\+Fold} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a19a2c46c03f94bf1b4b9a2dfbc2aaa51}\label{dpy___hydrometer_8ino_a19a2c46c03f94bf1b4b9a2dfbc2aaa51}} 
+float {\bfseries phi\+Fnew}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a4474e86ec1a568363b22737d2dce0536}\label{dpy___hydrometer_8ino_a4474e86ec1a568363b22737d2dce0536}} 
+float \mbox{\hyperlink{dpy___hydrometer_8ino_a4474e86ec1a568363b22737d2dce0536}{thetaG}} = 0
+\begin{DoxyCompactList}\small\item\em Gyrospoce variables for angle measurement. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af4f33fa66af1e942d8be166cd26add13}\label{dpy___hydrometer_8ino_af4f33fa66af1e942d8be166cd26add13}} 
+float {\bfseries phiG} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a778e38aa889751afffa2dea6b803e67a}\label{dpy___hydrometer_8ino_a778e38aa889751afffa2dea6b803e67a}} 
+float {\bfseries dt}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a44dddd37bc731b0e1aa83bb75f502e83}\label{dpy___hydrometer_8ino_a44dddd37bc731b0e1aa83bb75f502e83}} 
+unsigned long {\bfseries millis\+Old}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aadfc5c227ca658a29a59a0ce6fc15792}\label{dpy___hydrometer_8ino_aadfc5c227ca658a29a59a0ce6fc15792}} 
+float \mbox{\hyperlink{dpy___hydrometer_8ino_aadfc5c227ca658a29a59a0ce6fc15792}{theta}}
+\begin{DoxyCompactList}\small\item\em Final overall measurement after combining accelerometer and gyrospoce data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ab30c622a174639ec92b375db9b2ee56d}\label{dpy___hydrometer_8ino_ab30c622a174639ec92b375db9b2ee56d}} 
+float {\bfseries phi}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af5395db680075033b859646233c201ff}\label{dpy___hydrometer_8ino_af5395db680075033b859646233c201ff}} 
+float \mbox{\hyperlink{dpy___hydrometer_8ino_af5395db680075033b859646233c201ff}{theta\+Rad}}
+\begin{DoxyCompactList}\small\item\em Angles in radians. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a10404e95ea50aa9238abc006892e0726}\label{dpy___hydrometer_8ino_a10404e95ea50aa9238abc006892e0726}} 
+float {\bfseries phi\+Rad}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a8a59fef582e830568602c08472d89765}\label{dpy___hydrometer_8ino_a8a59fef582e830568602c08472d89765}} 
+float \mbox{\hyperlink{dpy___hydrometer_8ino_a8a59fef582e830568602c08472d89765}{Xm}}
+\begin{DoxyCompactList}\small\item\em Variables to calculate Z axis angle. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a86d7d90b2b5247f1db58ced67a03fa2b}\label{dpy___hydrometer_8ino_a86d7d90b2b5247f1db58ced67a03fa2b}} 
+float {\bfseries Ym}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aace8e2df2e07a1def1b869e5511bc602}\label{dpy___hydrometer_8ino_aace8e2df2e07a1def1b869e5511bc602}} 
+float {\bfseries psi}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_af93e674939d1abc876558b3a692f3a55}\label{dpy___hydrometer_8ino_af93e674939d1abc876558b3a692f3a55}} 
+uint8\+\_\+t \mbox{\hyperlink{dpy___hydrometer_8ino_af93e674939d1abc876558b3a692f3a55}{cal\+\_\+system}}
+\begin{DoxyCompactList}\small\item\em Variables used for calibration. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aa4e19362553dfb5bc491937c5b40a89e}\label{dpy___hydrometer_8ino_aa4e19362553dfb5bc491937c5b40a89e}} 
+uint8\+\_\+t {\bfseries cal\+\_\+gyroo}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a5b1a0f3ac2ad6a3143e77e3213f40d43}\label{dpy___hydrometer_8ino_a5b1a0f3ac2ad6a3143e77e3213f40d43}} 
+uint8\+\_\+t {\bfseries cal\+\_\+accel}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ab3ad5409872160e7097c79f730211f67}\label{dpy___hydrometer_8ino_ab3ad5409872160e7097c79f730211f67}} 
+uint8\+\_\+t {\bfseries cal\+\_\+mg} = 0
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ad7a311b50e0cc912b6e354bdca38279a}\label{dpy___hydrometer_8ino_ad7a311b50e0cc912b6e354bdca38279a}} 
+Adafruit\+\_\+\+B\+N\+O055 \mbox{\hyperlink{dpy___hydrometer_8ino_ad7a311b50e0cc912b6e354bdca38279a}{my\+I\+MU}} = Adafruit\+\_\+\+B\+N\+O055()
+\begin{DoxyCompactList}\small\item\em Creating an object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a3f4a69cbf0bb0db4637fcd6e2368ae71}\label{dpy___hydrometer_8ino_a3f4a69cbf0bb0db4637fcd6e2368ae71}} 
+int {\bfseries vbat\+\_\+raw}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a9cf50989973c0ca4d7477a0536c07223}\label{dpy___hydrometer_8ino_a9cf50989973c0ca4d7477a0536c07223}} 
+uint8\+\_\+t {\bfseries vbat\+\_\+per}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aae8d8eca3ea3f4c408916bd682c65772}\label{dpy___hydrometer_8ino_aae8d8eca3ea3f4c408916bd682c65772}} 
+float {\bfseries vbat\+\_\+mv}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a18d6f8298def612b5914743f968fbaf3}\label{dpy___hydrometer_8ino_a18d6f8298def612b5914743f968fbaf3}} 
+uint32\+\_\+t {\bfseries count\+Down}
+\item 
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a094eb1ed82909d61058da07ddda76ba7}\label{dpy___hydrometer_8ino_a094eb1ed82909d61058da07ddda76ba7}} 
+int8\+\_\+t \mbox{\hyperlink{dpy___hydrometer_8ino_a094eb1ed82909d61058da07ddda76ba7}{temp\+Fahrenheit}}
+\begin{DoxyCompactList}\small\item\em countdown interval to get data ~\newline
+ \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is source file for D\+PY Hydrometer. This firmware file will setup the n\+R\+F52 based Bluefruit LE and Adafruit Adafruit\+\_\+\+B\+N\+O055. 
+
+\begin{DoxyAuthor}{Author}
+Minh Luong 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a4c58310596eabbb970a4e2714e6e7077}\label{dpy___hydrometer_8ino_a4c58310596eabbb970a4e2714e6e7077}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!UUID16\_HYDS@{UUID16\_HYDS}}
+\index{UUID16\_HYDS@{UUID16\_HYDS}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{UUID16\_HYDS}{UUID16\_HYDS}}
+{\footnotesize\ttfamily \#define U\+U\+I\+D16\+\_\+\+H\+Y\+DS~0x2468}
+
+H\+Y\+D\+R\+O\+M\+E\+T\+ER Service Definitions Hydrometer Service\+: 0x2468 Gravity Measurement Char\+: 0x0001 Battery Level Measurement Char\+: 0x0002 
+
+Definition at line 21 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a2c9700a9e1785dc46cc0e4b53c6115f7}\label{dpy___hydrometer_8ino_a2c9700a9e1785dc46cc0e4b53c6115f7}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!cccd\_callback@{cccd\_callback}}
+\index{cccd\_callback@{cccd\_callback}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{cccd\_callback()}{cccd\_callback()}}
+{\footnotesize\ttfamily void cccd\+\_\+callback (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{conn\+\_\+hdl,  }\item[{B\+L\+E\+Characteristic $\ast$}]{chr,  }\item[{uint16\+\_\+t}]{cccd\+\_\+value }\end{DoxyParamCaption})}
+
+Callback invoked when user subscribed to the gravity characteristic 
+\begin{DoxyParams}{Parameters}
+{\em conn\+\_\+hdl} & connection where this event happens \\
+\hline
+{\em chr} & the characteristic pointer \\
+\hline
+{\em cccd\+\_\+value} & the cccd value \\
+\hline
+\end{DoxyParams}
+Display the raw request packet
+
+Check the characteristic this C\+C\+CD update is associated with in case this handler is used for multiple C\+C\+CD records.
+
+Definition at line 252 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a42328a2531f25c9a6be7653ef4a21c40}\label{dpy___hydrometer_8ino_a42328a2531f25c9a6be7653ef4a21c40}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!connect\_callback@{connect\_callback}}
+\index{connect\_callback@{connect\_callback}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{connect\_callback()}{connect\_callback()}}
+{\footnotesize\ttfamily void connect\+\_\+callback (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{conn\+\_\+handle }\end{DoxyParamCaption})}
+
+Callback invoked when a connection is established 
+\begin{DoxyParams}{Parameters}
+{\em conn\+\_\+handle} & connection where this event happens \\
+\hline
+\end{DoxyParams}
+Get the reference to current connection
+
+Definition at line 220 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a75d8e8b9b10b0a121eb72c75fe4ab1be}\label{dpy___hydrometer_8ino_a75d8e8b9b10b0a121eb72c75fe4ab1be}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!disconnect\_callback@{disconnect\_callback}}
+\index{disconnect\_callback@{disconnect\_callback}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{disconnect\_callback()}{disconnect\_callback()}}
+{\footnotesize\ttfamily void disconnect\+\_\+callback (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{conn\+\_\+handle,  }\item[{uint8\+\_\+t}]{reason }\end{DoxyParamCaption})}
+
+Callback invoked when a connection is dropped 
+\begin{DoxyParams}{Parameters}
+{\em conn\+\_\+handle} & connection where this event happens \\
+\hline
+{\em reason} & is a B\+L\+E\+\_\+\+H\+C\+I\+\_\+\+S\+T\+A\+T\+U\+S\+\_\+\+C\+O\+DE which can be found in ble\+\_\+hci.\+h \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 237 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a300ecbf25a51953b52fe095d35664daa}\label{dpy___hydrometer_8ino_a300ecbf25a51953b52fe095d35664daa}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!float2Bytes@{float2Bytes}}
+\index{float2Bytes@{float2Bytes}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{float2Bytes()}{float2Bytes()}}
+{\footnotesize\ttfamily void float2\+Bytes (\begin{DoxyParamCaption}\item[{byte}]{bytes\+\_\+temp\mbox{[}4\mbox{]},  }\item[{float}]{float\+\_\+variable }\end{DoxyParamCaption})}
+
+This method will convert the float value to array of bytes 
+\begin{DoxyParams}{Parameters}
+{\em bytes\+\_\+temp} & the array of output bytes \\
+\hline
+{\em float\+\_\+variable} & the float value \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 337 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_afa0e2bfaf37a2c519ba528c769277d08}\label{dpy___hydrometer_8ino_afa0e2bfaf37a2c519ba528c769277d08}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!getXYZ@{getXYZ}}
+\index{getXYZ@{getXYZ}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{getXYZ()}{getXYZ()}}
+{\footnotesize\ttfamily void get\+X\+YZ (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+This method will read X, Y, and Z values from Accelerometer, Gyroscope, and Magnetometer 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Compact datatype = int8\+\_\+t
+
+Using the external temperature sensor that is on the board and not the one on the chip.
+
+Ranging from level 0-\/3 = C\+A\+L\+I\+B\+R\+A\+T\+I\+ON
+
+Calculating theta in degrees = Tilt (accelerometer)
+
+Low pass fiter data
+
+Final measurement for theta(x) and phi(y)
+
+Finding angle using gyroscope measurements
+
+Converting the angle in radians
+
+Using magnetometer data, finding the z-\/axis angle
+
+Print Statements
+
+Setting back the value to new value(0) while going back to loop
+
+Definition at line 401 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_afe461d27b9c48d5921c00d521181f12f}\label{dpy___hydrometer_8ino_afe461d27b9c48d5921c00d521181f12f}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!loop@{loop}}
+\index{loop@{loop}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{loop()}{loop()}}
+{\footnotesize\ttfamily void loop (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+This is main loop of firmware 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Only send update once per second
+
+Definition at line 549 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_ad4a7ebac4897fb3d7e369c917d632f08}\label{dpy___hydrometer_8ino_ad4a7ebac4897fb3d7e369c917d632f08}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!mvToPercent@{mvToPercent}}
+\index{mvToPercent@{mvToPercent}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{mvToPercent()}{mvToPercent()}}
+{\footnotesize\ttfamily uint8\+\_\+t mv\+To\+Percent (\begin{DoxyParamCaption}\item[{float}]{mvolts }\end{DoxyParamCaption})}
+
+This method will convert battery voltage to level 
+\begin{DoxyParams}{Parameters}
+{\em mvolts} & the current voltage of battery ~\newline
+ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the battery level 
+\end{DoxyReturn}
+
+
+Definition at line 351 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a775f3ae8121fb2049e9d05b2dd72b5a2}\label{dpy___hydrometer_8ino_a775f3ae8121fb2049e9d05b2dd72b5a2}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!print\_bytes@{print\_bytes}}
+\index{print\_bytes@{print\_bytes}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{print\_bytes()}{print\_bytes()}}
+{\footnotesize\ttfamily void print\+\_\+bytes (\begin{DoxyParamCaption}\item[{byte $\ast$}]{str,  }\item[{uint8\+\_\+t}]{len }\end{DoxyParamCaption})}
+
+This method will print out the data in Hex format 
+\begin{DoxyParams}{Parameters}
+{\em str} & the array of byte data \\
+\hline
+{\em len} & the input data length \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 325 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a647ec4ab0d27b1b384f76298bb1205f5}\label{dpy___hydrometer_8ino_a647ec4ab0d27b1b384f76298bb1205f5}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!readBatteryLevel@{readBatteryLevel}}
+\index{readBatteryLevel@{readBatteryLevel}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{readBatteryLevel()}{readBatteryLevel()}}
+{\footnotesize\ttfamily void read\+Battery\+Level (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+This method will read the battery voltage from output pin 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Read battery voltage from output pin
+
+F\+I\+X\+ME\+: Using C-\/style cast. Use static\+\_\+cast$<$float$>$(...) instead \mbox{[}readability/casting\mbox{]} \mbox{[}4\mbox{]} Remove \mbox{[}readability/casting\mbox{]} ignore from Makefile
+
+Definition at line 375 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a95b1b253ee46df6a93285803cf1f3370}\label{dpy___hydrometer_8ino_a95b1b253ee46df6a93285803cf1f3370}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!sendData@{sendData}}
+\index{sendData@{sendData}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{sendData()}{sendData()}}
+{\footnotesize\ttfamily void send\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+This method will send the gravity data to user side 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Note\+: We use .notify instead of .write! If it is connected but C\+C\+CD is not enabled The characteristic\textquotesingle{}s value is still updated although notification is not sent
+
+Definition at line 508 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a4fc01d736fe50cf5b977f755b675f11d}\label{dpy___hydrometer_8ino_a4fc01d736fe50cf5b977f755b675f11d}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!setup@{setup}}
+\index{setup@{setup}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{setup()}{setup()}}
+{\footnotesize\ttfamily void setup (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+This method will setup all devices 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+for nrf52840 with native usb
+
+Initialise the Bluefruit module
+
+Set the advertised device name (keep it short!)
+
+Set the connect/disconnect callback handlers
+
+Configure and Start the Device Information Service
+
+Start the B\+LE Battery Service and set it to 100\%
+
+Setup the Heart Rate Monitor service using B\+L\+E\+Service and B\+L\+E\+Characteristic classes
+
+Setup the advertising packet(s)
+
+Can be 8, 10, 12 or 14
+
+Definition at line 104 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aaa440cb76248b5184c38d75f6c827bd1}\label{dpy___hydrometer_8ino_aaa440cb76248b5184c38d75f6c827bd1}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!setupHYDS@{setupHYDS}}
+\index{setupHYDS@{setupHYDS}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{setupHYDS()}{setupHYDS()}}
+{\footnotesize\ttfamily void setup\+H\+Y\+DS (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+This method will setup all characteristics 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Setup for Gravity Measurement Characteristic
+
+Optionally capture C\+C\+CD updates
+
+Setup for Command Characteristic
+
+Set up battery level characterristics
+
+Definition at line 191 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_aa62ff3a008a19b54b094aa1b64d89b5e}\label{dpy___hydrometer_8ino_aa62ff3a008a19b54b094aa1b64d89b5e}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!startAdv@{startAdv}}
+\index{startAdv@{startAdv}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{startAdv()}{startAdv()}}
+{\footnotesize\ttfamily void start\+Adv (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+This method will setup and start the B\+LE advertising 
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+Advertising packet
+
+Include H\+RM Service U\+U\+ID
+
+Include Name
+
+Start Advertising
+\begin{DoxyItemize}
+\item Enable auto advertising if disconnected
+\item Interval\+: fast mode = 20 ms, slow mode = 152.\+5 ms
+\item Timeout for fast mode is 30 seconds
+\item Start(timeout) with timeout = 0 will advertise forever (until connected)
+\end{DoxyItemize}
+
+For recommended advertising interval \href{https://developer.apple.com/library/content/qa/qa1931/_index.html}{\texttt{ https\+://developer.\+apple.\+com/library/content/qa/qa1931/\+\_\+index.\+html}} ~\newline
+
+
+in unit of 0.\+625 ms
+
+number of seconds in fast mode
+
+0 = Don\textquotesingle{}t stop advertising after n seconds ~\newline
+
+
+Definition at line 160 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a8df3a48c59f48a4950576d7960ddba8e}\label{dpy___hydrometer_8ino_a8df3a48c59f48a4950576d7960ddba8e}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!write\_callback@{write\_callback}}
+\index{write\_callback@{write\_callback}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{write\_callback()}{write\_callback()}}
+{\footnotesize\ttfamily void write\+\_\+callback (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{conn\+\_\+hdl,  }\item[{B\+L\+E\+Characteristic $\ast$}]{chr,  }\item[{uint8\+\_\+t $\ast$}]{data,  }\item[{uint16\+\_\+t}]{len }\end{DoxyParamCaption})}
+
+Callback invoked when user wrote to command characteristic 
+\begin{DoxyParams}{Parameters}
+{\em conn\+\_\+hdl} & connection where this event happens \\
+\hline
+{\em chr} & the characteristic pointer \\
+\hline
+{\em data} & the pointer to the input data \\
+\hline
+{\em len} & the input data length \\
+\hline
+\end{DoxyParams}
+Set the interval for the notification characteristic
+
+Get the previous interval for the notification characteristic
+
+Get the hardware calibration status
+
+Definition at line 279 of file dpy\+\_\+\+Hydrometer.\+ino.
+
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{dpy___hydrometer_8ino_a9ce2e19f4288e6517e0f0e2933bb1f85}\label{dpy___hydrometer_8ino_a9ce2e19f4288e6517e0f0e2933bb1f85}} 
+\index{dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}!thetaM@{thetaM}}
+\index{thetaM@{thetaM}!dpy\_Hydrometer.ino@{dpy\_Hydrometer.ino}}
+\doxysubsubsection{\texorpdfstring{thetaM}{thetaM}}
+{\footnotesize\ttfamily float thetaM}
+
+Variable to determine the tilt from the 3 axis accelerometer for angle measurement Accelerometer variables 
+
+Definition at line 62 of file dpy\+\_\+\+Hydrometer.\+ino.
+
